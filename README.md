@@ -1,6 +1,9 @@
 # WindowsAutoRunsViewer
 A homework for IS405
 
+可执行文件位于“WindowsFormsApp1\WindowsFormsApp1\bin\Debug\”路径下，
+请使用管理员权限运行 WindowsFormsApp1.exe，否则会有部分信息无法显示。
+
 ##### 2020年5月31日更新
 
 * 必须完成的部分
