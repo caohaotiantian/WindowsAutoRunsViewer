@@ -1,28 +1,15 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using TaskScheduler;
 
 namespace WindowsFormsApp1
 {
     public partial class Form1 : Form
     {
-        public const string HKLM_Logon = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
-        public const string HKCU_Logon = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
-        public const string HKLM_IE_BHO = "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Browser Helper Objects";
-        public const string HKLM_CLSID = "Software\\Classes\\CLSID";
-        public const string HKLM_Services = "System\\CurrentControlSet\\Services";
-        public const string ScheduledTask_Path = "C:\\Windows\\System32\\Tasks";
-        public const string HKLM_KnownDLLs = "System\\CurrentControlSet\\Control\\Session Manager\\KnownDlls";
-
         public Form1()
         {
             InitializeComponent();
@@ -41,8 +28,9 @@ namespace WindowsFormsApp1
 
             #region LocalMachine->Run
 
+            string HKLM_Logon = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
             ListViewGroup LogonGroup1 = new ListViewGroup();
-            LogonGroup1.Header = "HKLM\\" + HKCU_Logon;
+            LogonGroup1.Header = "HKLM\\" + HKLM_Logon;
             LogonResult.Groups.Add(LogonGroup1);
             RegistryKey hklm_logon = Registry.LocalMachine.OpenSubKey(HKLM_Logon);
             for (int i = 0; i < hklm_logon.GetValueNames().Length; i++)
@@ -58,7 +46,7 @@ namespace WindowsFormsApp1
                 listViewItem = new ListViewItem(item);
                 try
                 {
-                    FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(file);
+                    FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(name);
                     listViewItem.SubItems.Add(fileVersion.FileDescription);
                     listViewItem.SubItems.Add(fileVersion.ProductName);
                 }
@@ -67,7 +55,7 @@ namespace WindowsFormsApp1
                     listViewItem.SubItems.Add("");
                     listViewItem.SubItems.Add("");
                 }
-                listViewItem.SubItems.Add(file);
+                listViewItem.SubItems.Add(name);
                 LogonGroup1.Items.Add(listViewItem);
                 LogonResult.Items.Add(listViewItem);
             }
@@ -76,6 +64,7 @@ namespace WindowsFormsApp1
 
             #region CurrentUser->Run
 
+            string HKCU_Logon = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
             ListViewGroup LogonGroup2 = new ListViewGroup();
             LogonGroup2.Header = "HKCU\\" + HKCU_Logon;
             LogonResult.Groups.Add(LogonGroup2);
@@ -109,6 +98,114 @@ namespace WindowsFormsApp1
 
             #endregion CurrentUser->Run
 
+            #region LocalMachine->AlternateShell
+
+            string HCLM_AlternateShell = "SYSTEM\\CurrentControlSet\\Control\\SafeBoot";
+            ListViewGroup LogonGroup3 = new ListViewGroup();
+            LogonGroup3.Header = "HKLM\\" + HCLM_AlternateShell;
+            LogonResult.Groups.Add(LogonGroup3);
+            RegistryKey hklm_alternateshell = Registry.LocalMachine.OpenSubKey(HCLM_AlternateShell);
+            for (int i = 0; i < hklm_alternateshell.GetValueNames().Length; i++)
+            {
+                item = hklm_alternateshell.GetValueNames().ElementAt(i);
+                name = hklm_alternateshell.GetValue(item).ToString();
+                if (name == "") continue;
+                start = name.IndexOf(":") - 1;
+                if (start == -2) start = 0;
+                dot = name.IndexOf(".");
+                string file = name.Substring(start, dot - start + 4);
+                if (file.IndexOf(":") == -1) file = "C:\\Windows\\system32\\" + file;
+                listViewItem = new ListViewItem(name);
+                try
+                {
+                    FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(name);
+                    listViewItem.SubItems.Add(fileVersion.FileDescription);
+                    listViewItem.SubItems.Add(fileVersion.ProductName);
+                }
+                catch
+                {
+                    listViewItem.SubItems.Add("");
+                    listViewItem.SubItems.Add("");
+                }
+                listViewItem.SubItems.Add(file);
+                LogonGroup3.Items.Add(listViewItem);
+                LogonResult.Items.Add(listViewItem);
+            }
+
+            #endregion LocalMachine->AlternateShell
+
+            #region LocalMachine->wow64run
+
+            string HCLM_wow64run = "SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run";
+            ListViewGroup LogonGroup4 = new ListViewGroup();
+            LogonGroup4.Header = "HKLM\\" + HCLM_wow64run;
+            LogonResult.Groups.Add(LogonGroup4);
+            RegistryKey hklm_wow64run = Registry.LocalMachine.OpenSubKey(HCLM_wow64run);
+            for (int i = 0; i < hklm_wow64run.GetValueNames().Length; i++)
+            {
+                item = hklm_wow64run.GetValueNames().ElementAt(i);
+                name = hklm_wow64run.GetValue(item).ToString();
+                if (name == "") continue;
+                start = name.IndexOf(":") - 1;
+                if (start == -2) start = 0;
+                dot = name.IndexOf(".");
+                string file = name.Substring(start, dot - start + 4);
+                if (file.IndexOf(":") == -1) file = "C:\\Windows\\system32\\" + file;
+                listViewItem = new ListViewItem(item);
+                try
+                {
+                    FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(name);
+                    listViewItem.SubItems.Add(fileVersion.FileDescription);
+                    listViewItem.SubItems.Add(fileVersion.ProductName);
+                }
+                catch
+                {
+                    listViewItem.SubItems.Add("");
+                    listViewItem.SubItems.Add("");
+                }
+                listViewItem.SubItems.Add(file);
+                LogonGroup4.Items.Add(listViewItem);
+                LogonResult.Items.Add(listViewItem);
+            }
+
+            #endregion LocalMachine->wow64run
+
+            #region LocalMachine->InstalledComponents
+
+            string HCLM_InstalledComponents = "SOFTWARE\\Microsoft\\Active Setup\\Installed Components";
+            ListViewGroup LogonGroup5 = new ListViewGroup();
+            LogonGroup5.Header = "HKLM\\" + HCLM_InstalledComponents;
+            LogonResult.Groups.Add(LogonGroup4);
+            RegistryKey hklm_InstalledComponents = Registry.LocalMachine.OpenSubKey(HCLM_InstalledComponents);
+            for (int i = 0; i < hklm_InstalledComponents.GetValueNames().Length; i++)
+            {
+                item = hklm_InstalledComponents.GetValueNames().ElementAt(i);
+                name = hklm_InstalledComponents.GetValue(item).ToString();
+                if (name == "") continue;
+                start = name.IndexOf(":") - 1;
+                if (start == -2) start = 0;
+                dot = name.IndexOf(".");
+                string file = name.Substring(start, dot - start + 4);
+                if (file.IndexOf(":") == -1) file = "C:\\Windows\\system32\\" + file;
+                listViewItem = new ListViewItem(item);
+                try
+                {
+                    FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(name);
+                    listViewItem.SubItems.Add(fileVersion.FileDescription);
+                    listViewItem.SubItems.Add(fileVersion.ProductName);
+                }
+                catch
+                {
+                    listViewItem.SubItems.Add("");
+                    listViewItem.SubItems.Add("");
+                }
+                listViewItem.SubItems.Add(file);
+                LogonGroup5.Items.Add(listViewItem);
+                LogonResult.Items.Add(listViewItem);
+            }
+
+            #endregion LocalMachine->InstalledComponents
+
             #endregion Logon
 
             #region Services
@@ -118,6 +215,7 @@ namespace WindowsFormsApp1
 
             #region LocalMachine->Services
 
+            string HKLM_Services = "System\\CurrentControlSet\\Services";
             ListViewGroup ServicesGroup1 = new ListViewGroup();
             ServicesGroup1.Header = "HKLM\\" + HKLM_Services;
             ServicesResult.Groups.Add(ServicesGroup1);
@@ -295,55 +393,46 @@ namespace WindowsFormsApp1
 
             #region C:\Windows\System32\Tasks
 
+            string ScheduledTask_Path = "C:\\Windows\\System32\\Tasks";
             ListViewGroup ScheduledTasksGroup1 = new ListViewGroup();
             ScheduledTasksGroup1.Header = ScheduledTask_Path;
             ScheduledTasksResult.Groups.Add(ScheduledTasksGroup1);
-            FileInfo fileInfo;
-            DirectoryInfo directoryInfo = new DirectoryInfo(ScheduledTask_Path);
-            for (int i = 0; i < Directory.GetFiles(ScheduledTask_Path).Length; i++)
+            TaskSchedulerClass ts = new TaskSchedulerClass();
+            ts.Connect(null, null, null, null);
+            ITaskFolder folder = ts.GetFolder("\\");
+            IRegisteredTaskCollection tasks_exists = folder.GetTasks(1);
+            for (int i = 1; i <= tasks_exists.Count; i++)
             {
-                fileInfo = directoryInfo.GetFiles().ElementAt(i);
-                FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(fileInfo.FullName);
-                FileStream fileStream = fileInfo.OpenRead();
-                long filename_length = fileStream.Length;
-                byte[] buffer = new byte[256];
-                int j = 0;
-                path = "";
-                do
-                {
-                    fileStream.Read(buffer, 0, 256);
-                    foreach (byte s in buffer)
-                    {
-                        if (s != 0)
-                        {
-                            path += (char)s;
-                        }
-                        j = j + 1;
-                    }
-                } while (j < filename_length);
-                path = path.Substring(path.IndexOf("<Command>") + 9, path.IndexOf("</Command>") - path.IndexOf("<Command>") - 9);
-                while (!char.IsLetter(path, 0))
-                {
-                    path = path.Remove(0, 1);
-                }
-                while (!char.IsLetter(path, path.Length - 1))
-                {
-                    path = path.Remove(path.Length - 1, 1);
-                }
-                if (fileInfo.Name[0] == '{') continue;
+                IRegisteredTask t = tasks_exists[i];
                 try
                 {
-                    listViewItem = new ListViewItem(path);
-                    listViewItem.SubItems.Add(fileVersionInfo.FileDescription);
-                    listViewItem.SubItems.Add(fileVersionInfo.ProductName);
+                    listViewItem = new ListViewItem(t.Name);
+                    string xml = t.Xml;
+                    string description = xml.Substring(xml.IndexOf("<Description>") + 13, xml.IndexOf("</Description>") - xml.IndexOf("<Description>") - 13);
+                    string imagePath = xml.Substring(xml.IndexOf("<Command>") + 9, xml.IndexOf("</Command>") - xml.IndexOf("<Command>") - 9);
+                    if (imagePath.IndexOf("{") > 0)
+                    {
+                        imagePath = imagePath.Substring(0, imagePath.IndexOf("{"));
+                    }
+                    string publisher = xml.Substring(xml.IndexOf("<Author>") + 8, xml.IndexOf("</Author>") - xml.IndexOf("<Author>") - 8);
+                    listViewItem.SubItems.Add(description);
+                    listViewItem.SubItems.Add(publisher);
+                    listViewItem.SubItems.Add(imagePath);
                 }
                 catch
                 {
-                    listViewItem = new ListViewItem(path);
+                    listViewItem = new ListViewItem(t.Name);
+                    string xml = t.Xml;
                     listViewItem.SubItems.Add("");
                     listViewItem.SubItems.Add("");
+                    string imagePath = xml.Substring(xml.IndexOf("<Command>") + 9, xml.IndexOf("</Command>") - xml.IndexOf("<Command>") - 9);
+                    if (imagePath.IndexOf("{") > 0)
+                    {
+                        imagePath = imagePath.Substring(0, imagePath.IndexOf("{"));
+                    }
+                    listViewItem.SubItems.Add(imagePath);
                 }
-                listViewItem.SubItems.Add(path);
+
                 ScheduledTasksGroup1.Items.Add(listViewItem);
                 ScheduledTasksResult.Items.Add(listViewItem);
             }
@@ -359,6 +448,8 @@ namespace WindowsFormsApp1
 
             #region LocalMachine->IE BHO
 
+            string HKLM_CLSID = "Software\\Classes\\CLSID";
+            string HKLM_IE_BHO = "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Browser Helper Objects";
             ListViewGroup IEGroup1 = new ListViewGroup();
             IEGroup1.Header = "HKLM\\" + HKLM_IE_BHO;
             InternetExplorerResult.Groups.Add(IEGroup1);
@@ -399,6 +490,7 @@ namespace WindowsFormsApp1
 
             #region LocalMachine->Known DLLs
 
+            string HKLM_KnownDLLs = "System\\CurrentControlSet\\Control\\Session Manager\\KnownDlls";
             ListViewGroup KnownDLLsGroup = new ListViewGroup();
             KnownDLLsGroup.Header = "HKLM\\" + HKLM_KnownDLLs;
             KnownDLLResult.Groups.Add(KnownDLLsGroup);
@@ -439,5 +531,135 @@ namespace WindowsFormsApp1
 
             #endregion KnownDLLs
         }
+
+        #region Export
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "文本文件|*.txt|CSV文件|*.csv|All files(*.*)|*.*";
+            saveFileDialog.FilterIndex = 2;
+            saveFileDialog.RestoreDirectory = true;
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string file = saveFileDialog.FileName;
+                FileInfo fi = new FileInfo(file);
+                StreamWriter sw = fi.CreateText();
+                sw.WriteLine("Autorun Entry,Description,Publisher,Image Path");
+                for (int i = 0; i < this.LogonResult.Items.Count; i++)
+                {
+                    sw.WriteLine(string.Format("{0},{1},{2},{3}", LogonResult.Items[i].Text, LogonResult.Items[i].SubItems[1].Text, LogonResult.Items[i].SubItems[2].Text, LogonResult.Items[i].SubItems[3].Text));
+                }
+                sw.Close();
+                System.Diagnostics.Process.Start(file);
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "文本文件|*.txt|CSV文件|*.csv|All files(*.*)|*.*";
+            saveFileDialog.FilterIndex = 2;
+            saveFileDialog.RestoreDirectory = true;
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string file = saveFileDialog.FileName;
+                FileInfo fi = new FileInfo(file);
+                StreamWriter sw = fi.CreateText();
+                sw.WriteLine("Autorun Entry,Description,Publisher,Image Path");
+                for (int i = 0; i < this.DriversResult.Items.Count; i++)
+                {
+                    sw.WriteLine(string.Format("{0},{1},{2},{3}", DriversResult.Items[i].Text, DriversResult.Items[i].SubItems[1].Text, DriversResult.Items[i].SubItems[2].Text, DriversResult.Items[i].SubItems[3].Text));
+                }
+                sw.Close();
+                System.Diagnostics.Process.Start(file);
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "文本文件|*.txt|CSV文件|*.csv|All files(*.*)|*.*";
+            saveFileDialog.FilterIndex = 2;
+            saveFileDialog.RestoreDirectory = true;
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string file = saveFileDialog.FileName;
+                FileInfo fi = new FileInfo(file);
+                StreamWriter sw = fi.CreateText();
+                sw.WriteLine("Autorun Entry,Description,Publisher,Image Path");
+                for (int i = 0; i < this.ServicesResult.Items.Count; i++)
+                {
+                    sw.WriteLine(string.Format("{0},{1},{2},{3}", ServicesResult.Items[i].Text, ServicesResult.Items[i].SubItems[1].Text, ServicesResult.Items[i].SubItems[2].Text, ServicesResult.Items[i].SubItems[3].Text));
+                }
+                sw.Close();
+                System.Diagnostics.Process.Start(file);
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "文本文件|*.txt|CSV文件|*.csv|All files(*.*)|*.*";
+            saveFileDialog.FilterIndex = 2;
+            saveFileDialog.RestoreDirectory = true;
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string file = saveFileDialog.FileName;
+                FileInfo fi = new FileInfo(file);
+                StreamWriter sw = fi.CreateText();
+                sw.WriteLine("Autorun Entry,Description,Publisher,Image Path");
+                for (int i = 0; i < this.ScheduledTasksResult.Items.Count; i++)
+                {
+                    sw.WriteLine(string.Format("{0},{1},{2},{3}", ScheduledTasksResult.Items[i].Text, ScheduledTasksResult.Items[i].SubItems[1].Text, ScheduledTasksResult.Items[i].SubItems[2].Text, ScheduledTasksResult.Items[i].SubItems[3].Text));
+                }
+                sw.Close();
+                System.Diagnostics.Process.Start(file);
+            }
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "文本文件|*.txt|CSV文件|*.csv|All files(*.*)|*.*";
+            saveFileDialog.FilterIndex = 2;
+            saveFileDialog.RestoreDirectory = true;
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string file = saveFileDialog.FileName;
+                FileInfo fi = new FileInfo(file);
+                StreamWriter sw = fi.CreateText();
+                sw.WriteLine("Autorun Entry,Description,Publisher,Image Path");
+                for (int i = 0; i < this.KnownDLLResult.Items.Count; i++)
+                {
+                    sw.WriteLine(string.Format("{0},{1},{2},{3}", KnownDLLResult.Items[i].Text, KnownDLLResult.Items[i].SubItems[1].Text, KnownDLLResult.Items[i].SubItems[2].Text, KnownDLLResult.Items[i].SubItems[3].Text));
+                }
+                sw.Close();
+                System.Diagnostics.Process.Start(file);
+            }
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "文本文件|*.txt|CSV文件|*.csv|All files(*.*)|*.*";
+            saveFileDialog.FilterIndex = 2;
+            saveFileDialog.RestoreDirectory = true;
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string file = saveFileDialog.FileName;
+                FileInfo fi = new FileInfo(file);
+                StreamWriter sw = fi.CreateText();
+                sw.WriteLine("Autorun Entry,Description,Publisher,Image Path");
+                for (int i = 0; i < this.InternetExplorerResult.Items.Count; i++)
+                {
+                    sw.WriteLine(string.Format("{0},{1},{2},{3}", InternetExplorerResult.Items[i].Text, InternetExplorerResult.Items[i].SubItems[1].Text, InternetExplorerResult.Items[i].SubItems[2].Text, InternetExplorerResult.Items[i].SubItems[3].Text));
+                }
+                sw.Close();
+                System.Diagnostics.Process.Start(file);
+            }
+        }
+
+        #endregion Export
     }
 }
