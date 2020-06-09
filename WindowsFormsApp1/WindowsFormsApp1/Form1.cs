@@ -175,7 +175,7 @@ namespace WindowsFormsApp1
             string HCLM_InstalledComponents = "SOFTWARE\\Microsoft\\Active Setup\\Installed Components";
             ListViewGroup LogonGroup5 = new ListViewGroup();
             LogonGroup5.Header = "HKLM\\" + HCLM_InstalledComponents;
-            LogonResult.Groups.Add(LogonGroup4);
+            LogonResult.Groups.Add(LogonGroup5);
             RegistryKey hklm_InstalledComponents = Registry.LocalMachine.OpenSubKey(HCLM_InstalledComponents);
             for (int i = 0; i < hklm_InstalledComponents.GetValueNames().Length; i++)
             {
@@ -248,7 +248,7 @@ namespace WindowsFormsApp1
                  * 272 win32服务，以其自身进程运行，同时服务可与桌面交互，接受用户输入，交互服务必须以localsystem本地系统帐户运行
                  * 288	win32服务，以共享进程运行，同时服务可与桌面交互，接受用户输入，交互服务必须以localsystem本地系统帐户运行
                  */
-                if ((type == 16) || (type == 32) || (type == 272) || (type == 288))
+                if ((type >= 16))
                 {
                     string tmp_path = path.ToLower();
                     // find svchost
